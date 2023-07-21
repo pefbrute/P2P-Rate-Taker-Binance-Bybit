@@ -247,20 +247,29 @@ def format_info_percentage(prefix, price, percentages, multiplier=None):
 
 
 
+
+
 async def calculate_rate(summa, custom_rate, location, currency_value, ranges, is_reverse=False):
-    rate = custom_rate if custom_rate is not None else calculate_custom_rate(summa, location, currency_value, ranges, is_reverse)
-    response = f"Максимальная граница для торговли: {format_price(currency_value - rate)}\n"
+    if custom_rate is None:        
+        ranges = ranges if location == "bn" else RUB_RANGES
+        last_value = next(reversed(ranges.values()))
+        response = f"Максимальная граница для торговли: {format_price(currency_value - last_value)}\n"  
+
+        if (is_reverse):
+            for upper_limit, value in ranges.items():
+                if summa < upper_limit * (currency_value - value):
+                    rate = currency_value - value
+                    break
+        else:
+             for upper_limit, value in ranges.items():
+                if summa < upper_limit:
+                    rate = currency_value - value
+                    break           
+    else:
+        rate = custom_rate
     return rate, response
 
-def calculate_custom_rate(summa, location, currency_value, ranges, is_reverse):
-    ranges = ranges if location == "bn" else RUB_RANGES
-    last_value = next(reversed(ranges.values()))
-    for upper_limit, value in ranges.items():
-        if summa < (upper_limit * (currency_value - value) if is_reverse else upper_limit):
-            return currency_value - value
-
-async def generate_common_response(summa, rate, payment_type, reverse_conversion=False):
-    summa = summa / rate if reverse_conversion else summa
+async def generate_common_response(summa, rate, payment_type):
     response = f"Стоимость: {format_profit(summa)} {payment_type}\n"
     response += f"Курс обмена: 1 {payment_type} = {format_price(rate)} рупий\n"
     response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
