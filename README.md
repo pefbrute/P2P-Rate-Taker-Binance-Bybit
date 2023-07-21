@@ -1,4 +1,4 @@
-# Project Title
+# Binance P2P Rates
 
 A short description about your project.
 
