@@ -159,6 +159,8 @@ async def get_price(symbol, currency, action, provider):
         print(f"Error fetching price: {e}")
         return None
 
+
+
 async def generate_responses(arg, symbol, price, ranges, ranges_colombo, location, location_colombo):
     responses = [
         f"Безубыток {symbol}: {format_price(price)}\n",
@@ -247,57 +249,52 @@ def format_info_percentage(prefix, price, percentages, multiplier=None):
 
 
 
-async def generate_response(summa, custom_rate, location, RUB_LKR):
-    if custom_rate is None:
-        ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
+async def calculate_rate(summa, custom_rate, location, currency_value, ranges, is_reverse=False):
+    if custom_rate is None:        
+        ranges = ranges if location == "bn" else RUB_RANGES
         last_value = next(reversed(ranges.values()))
-        response = f"Максимальная граница для торговли: {format_price(RUB_LKR - last_value)}\n"  
+        response = f"Максимальная граница для торговли: {format_price(currency_value - last_value)}\n"  
 
-        for upper_limit, value in ranges.items():
-            if summa < upper_limit:
-                rate = RUB_LKR - value
-                break
+        if (is_reverse):
+            for upper_limit, value in ranges.items():
+                if summa < upper_limit * (currency_value - value):
+                    rate = currency_value - value
+                    break
+        else:
+             for upper_limit, value in ranges.items():
+                if summa < upper_limit:
+                    rate = currency_value - value
+                    break           
     else:
         rate = custom_rate
+    return rate, response
 
-    response2 = f"Стоимость: {format_profit(summa)} рублей\n"
-    response2 += f"Курс обмена: 1 рубль = {format_price(rate)} рупий\n"
-    response2 += f"Получите: {format_profit(summa * rate)} рупий\n\n"
-    response2 += f"🏦 Мы принимаем оплату через банковский перевод на Тинькофф\n\n"
-    response2 += f"- - - -\n"
-    response2 += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
-   
-    response3 = f"{format_profit(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
-    response4 = f"Профит: {format_profit(summa * (RUB_LKR - rate))} рупий"
+async def generate_common_response(summa, rate, payment_type):
+    response = f"Стоимость: {format_profit(summa)} {payment_type}\n"
+    response += f"Курс обмена: 1 {payment_type} = {format_price(rate)} рупий\n"
+    response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
+    response += f"🏦 Мы принимаем оплату через {payment_type}\n\n"
+    response += f"- - - -\n"
+    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    return response
+
+async def generate_response(summa, custom_rate, location, RUB_LKR, conversion='rub_to_lkr'):
+    if conversion == 'rub_to_lkr':
+        rate, response = await calculate_rate(summa, custom_rate, location, RUB_LKR, RUB_RANGES_COLOMBO)
+        response2 = await generate_common_response(summa, rate, 'рублей')
+        response3 = f"{format_profit(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
+        response4 = f"Профит: {format_profit(summa * (RUB_LKR - rate))} рупий"
+    elif conversion == 'lkr_to_rub':
+        rate, response = await calculate_rate(summa, custom_rate, location, RUB_LKR, RUB_RANGES_COLOMBO, True)
+        response2 = await generate_common_response(summa / rate, rate, 'рублей')
+        response3 = f"{format_profit(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
+        response4 = f"Профит: {format_profit((summa / rate) * (RUB_LKR - rate))} рупий"
+    else:
+        raise ValueError("Invalid conversion type. Choose either 'rub_to_lkr' or 'lkr_to_rub'.")
 
     return response, response2, response3, response4
 
-async def generate_response_lkr_rub(summa, custom_rate, location, RUB_LKR):
-    if custom_rate is None:
-        ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
-        last_value = next(reversed(ranges.values()))
-        response = f"Максимальная граница для торговли: {format_price(RUB_LKR - last_value)}\n"  
-
-        for upper_limit, value in ranges.items():
-            if upper_limit * (RUB_LKR - value) > summa:
-                rate = RUB_LKR - value
-                break
-    else:
-        rate = custom_rate
-
-    response2 = f"Стоимость: {format_profit(summa / rate)} рублей\n"
-    response2 += f"Курс обмена: 1 рубль = {format_price(rate)} рупий\n"
-    response2 += f"Получите: {format_profit(summa)} рупий\n\n"
-    response2 += f"🏦 Мы принимаем оплату через банковский перевод на Тинькофф\n\n"
-    response2 += f"- - - -\n"
-    response2 += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
-   
-    response3 = f"{format_profit(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
-    response4 = f"Профит: {format_profit((summa / rate) * (RUB_LKR - rate))} рупий"
-
-    return response, response2, response3, response4
-
-async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL):
+async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL, conversion='usdt_to_lkr'):
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
@@ -322,7 +319,7 @@ async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL):
 
     return response, response2, response3, response4
 
-async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL):
+async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL, conversion='lkr_to_usdt'):
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
@@ -347,7 +344,10 @@ async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL):
 
     return response, response2, response3, response4
 
-async def process_exchange(update, context, currency, response_generator, get_rates_func=None):
+
+
+
+async def process_exchange(update, context, currency, response_generator, conversion, get_rates_func=None):
     user = update.effective_user
     summa, custom_rate, location = await get_user_arguments(context)
 
@@ -359,7 +359,7 @@ async def process_exchange(update, context, currency, response_generator, get_ra
     response = f"Безубыток: {format_price(rate)}\n"
     await update.message.reply_text(response)
 
-    responses = await response_generator(summa, custom_rate, location, rate)
+    responses = await response_generator(summa, custom_rate, location, rate, conversion)
 
     for response in responses:
         await update.message.reply_text(response)
@@ -449,12 +449,13 @@ async def print_prices(update, context):
 
     USDT_SELL = await get_price("USDT", "LKR", "Sell", "BANK")
     RUB_LKR = await get_price("USDT", "RUB", "BUY", "TinkoffNew")
+
     if USDT_SELL is None or RUB_LKR is None:
         await update.message.reply_text("Error fetching prices, please try again later.")
         return
 
     responses = await asyncio.gather(
-        generate_responses(arg, 'RUB', RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
+        generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
         generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
     )
 
@@ -462,16 +463,16 @@ async def print_prices(update, context):
     await update.message.reply_text(full_response)
 
 async def get_rub_lkr(update, context):
-    await process_exchange(update, context, "RUB", generate_response, get_rates)
+    await process_exchange(update, context, "RUB", generate_response, "rub_to_lkr", get_rates)
 
 async def get_lkr_rub(update, context):
-    await process_exchange(update, context, "RUB", generate_response_lkr_rub, get_rates)
+    await process_exchange(update, context, "RUB", generate_response, "lkr_to_rub", get_rates)
 
 async def get_usdt_lkr(update, context):
-    await process_exchange(update, context, "USDT", generate_response_usdt_lkr)
+    await process_exchange(update, context, "USDT", generate_response_usdt_lkr, "usdt_to_lkr")
 
 async def get_lkr_usdt(update, context):
-    await process_exchange(update, context, "USDT", generate_response_lkr_usdt)
+    await process_exchange(update, context, "USDT", generate_response_lkr_usdt, "lkr_to_usdt")
 
 
 
