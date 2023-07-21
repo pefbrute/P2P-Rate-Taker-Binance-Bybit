@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
 
+import asyncio
 import logging
 import requests
 import os
