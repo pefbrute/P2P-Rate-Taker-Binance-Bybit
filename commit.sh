@@ -16,6 +16,6 @@ git add .
 git commit -m "$COMMIT_MSG"
 
 # Push the changes
-git push origin master
+git push origin main
 
-echo "Changes pushed to origin master"
+echo "Changes pushed to origin main"
