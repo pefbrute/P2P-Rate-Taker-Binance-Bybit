@@ -248,7 +248,6 @@ async def calculate_rate(summa, custom_rate, location, currency_value, ranges, d
                     break
         else:
              for upper_limit, value in ranges.items():
-                print(upper_limit, value, summa)                
                 if summa < upper_limit:
                     rate = currency_value - value
                     break           
@@ -276,13 +275,13 @@ class PriceFetcher:
             print(f"Error fetching price: {e}")
             return None
 
-class ResponseGenerator:
+class PostGenerator:
     @staticmethod
     async def generate_responses(arg, symbol, price, ranges, ranges_colombo, location, location_colombo):
         responses = [
             f"Безубыток {symbol}: {format_price(price)}\n",
-            ResponseGenerator.generate_price_response(symbol, ranges.items(), price, location),
-            ResponseGenerator.generate_price_response(symbol, ranges_colombo.items(), price, location_colombo),
+            PostGenerator.generate_price_response(symbol, ranges.items(), price, location),
+            PostGenerator.generate_price_response(symbol, ranges_colombo.items(), price, location_colombo),
             "\n"
         ]
         return responses if arg in [symbol.lower(), None] else []
@@ -405,66 +404,6 @@ def format_info_percentage(prefix, price, percentages, multiplier=None):
 
 
 
-
-
-
-
-
-
-
-
-async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL):
-    if custom_rate is None:
-        ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
-        last_value = next(reversed(ranges.values()))
-        response = f"Максимальная граница для торговли: {format_price(USDT_SELL - last_value)}\n"  
-
-        for upper_limit, value in ranges.items():
-            if summa < upper_limit:
-                rate = USDT_SELL - value
-                break
-    else:
-        rate = custom_rate
-
-    response2 = f"Стоимость: {format_price(summa)} USDT\n"
-    response2 += f"Курс обмена: 1 USDT = {format_price(rate)} рупий\n"
-    response2 += f"Получите: {format_profit(summa * rate)} рупий\n\n"
-    response2 += f"🏦 Мы принимаем оплату через TRC-20\n\n"
-    response2 += f"- - - -\n"
-    response2 += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
-   
-    response3 = f"{format_price(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
-    response4 = f"Профит: {format_profit(summa * (USDT_SELL - rate))} рупий"
-
-    return response, response2, response3, response4
-
-async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL):
-    if custom_rate is None:
-        ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
-        last_value = next(reversed(ranges.values()))
-        response = f"Максимальная граница для торговли: {format_price(USDT_SELL - last_value)}\n"  
-
-        for upper_limit, value in ranges.items():
-            if upper_limit * (USDT_SELL - value) > summa:
-                rate = USDT_SELL - value
-                break
-    else:
-        rate = custom_rate
-
-    response2 = f"Стоимость: {format_price(summa / rate)} USDT\n"
-    response2 += f"Курс обмена: 1 USDT = {format_price(rate)} рупий\n"
-    response2 += f"Получите: {format_profit(summa)} рупий\n\n"
-    response2 += f"🏦 Мы принимаем оплату через TRC-20\n\n"
-    response2 += f"- - - -\n"
-    response2 += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
-
-    response3 = f"{format_price(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
-    response4 = f"Профит: {format_profit((summa / rate) * (USDT_SELL - rate))} рупий"
-
-    return response, response2, response3, response4
-
-
-
 async def get_rub(update, context):
     user = update.effective_user
 
@@ -553,8 +492,8 @@ async def print_prices(update, context):
         return
 
     responses = await asyncio.gather(
-        ResponseGenerator.generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
-        ResponseGenerator.generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
+        PostGenerator.generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
+        PostGenerator.generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
     )
 
     full_response = "\n".join(sum(responses, []))
