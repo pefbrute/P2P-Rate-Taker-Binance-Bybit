@@ -7,6 +7,7 @@ import logging
 import requests
 import os
 from dotenv import load_dotenv
+from abc import ABC, abstractmethod
 
 load_dotenv()
 
@@ -122,6 +123,107 @@ async def get_arg(context):
             return None
 
 
+
+class ExchangeProcessor(ABC):
+    def __init__(self, update, context):
+        self.update = update
+        self.context = context
+
+    @abstractmethod
+    async def process(self):
+        pass
+
+    async def reply(self, response):
+        await self.update.message.reply_text(response)
+
+
+class RubLkrProcessor(ExchangeProcessor):
+    def __init__(self, update, context, response_generator, conversion, get_rates_func):
+        super().__init__(update, context)
+        self.response_generator = response_generator
+        self.conversion = conversion
+        self.get_rates_func = get_rates_func
+
+    async def process(self):
+        user = self.update.effective_user
+        summa, custom_rate, location = await get_user_arguments(self.context)
+
+        if self.get_rates_func:
+            rate = await self.get_rates_func()
+        else:
+            rate = float(format_price(fetch_price("RUB", "LKR", "Sell", "BANK")))
+
+        response = f"Безубыток: {format_price(rate)}\n"
+        await self.reply(response)
+
+        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
+
+        for response in responses:
+            await self.reply(response)
+
+class LkrRubProcessor(ExchangeProcessor):
+    def __init__(self, update, context, response_generator, conversion, get_rates_func):
+        super().__init__(update, context)
+        self.response_generator = response_generator
+        self.conversion = conversion
+        self.get_rates_func = get_rates_func
+
+    async def process(self):
+        user = self.update.effective_user
+        summa, custom_rate, location = await get_user_arguments(self.context)
+
+        if self.get_rates_func:
+            rate = await self.get_rates_func()
+        else:
+            rate = float(format_price(fetch_price("RUB", "LKR", "Sell", "BANK")))
+
+        response = f"Безубыток: {format_price(rate)}\n"
+        await self.reply(response)
+
+        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
+
+        for response in responses:
+            await self.reply(response)
+
+class UsdtLkrProcessor(ExchangeProcessor):
+    def __init__(self, update, context, response_generator, conversion):
+        super().__init__(update, context)
+        self.response_generator = response_generator
+        self.conversion = conversion
+
+    async def process(self):
+        user = self.update.effective_user
+        summa, custom_rate, location = await get_user_arguments(self.context)
+
+        rate = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
+
+        response = f"Безубыток: {format_price(rate)}\n"
+        await self.reply(response)
+
+        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
+
+        for response in responses:
+            await self.reply(response)
+
+class LkrUsdtProcessor(ExchangeProcessor):
+    def __init__(self, update, context, response_generator, conversion):
+        super().__init__(update, context)
+        self.response_generator = response_generator
+        self.conversion = conversion
+
+    async def process(self):
+        user = self.update.effective_user
+        summa, custom_rate, location = await get_user_arguments(self.context)
+
+        rate = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
+
+        response = f"Безубыток: {format_price(rate)}\n"
+        await self.reply(response)
+
+        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
+
+        for response in responses:
+            await self.reply(response)
 
 
 
@@ -294,6 +396,8 @@ async def generate_response(summa, custom_rate, location, RUB_LKR, conversion='r
 
     return response, response2, response3, response4
 
+
+
 async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL, conversion='usdt_to_lkr'):
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
@@ -463,19 +567,21 @@ async def print_prices(update, context):
     await update.message.reply_text(full_response)
 
 async def get_rub_lkr(update, context):
-    await process_exchange(update, context, "RUB", generate_response, "rub_to_lkr", get_rates)
+    processor = RubLkrProcessor(update, context, generate_response, "rub_to_lkr", get_rates)
+    await processor.process()
 
 async def get_lkr_rub(update, context):
-    await process_exchange(update, context, "RUB", generate_response, "lkr_to_rub", get_rates)
+    processor = LkrRubProcessor(update, context, generate_response, "lkr_to_rub", get_rates)
+    await processor.process()
+
 
 async def get_usdt_lkr(update, context):
-    await process_exchange(update, context, "USDT", generate_response_usdt_lkr, "usdt_to_lkr")
+    processor = UsdtLkrProcessor(update, context, generate_response_usdt_lkr, "usdt_to_lkr")
+    await processor.process()
 
 async def get_lkr_usdt(update, context):
-    await process_exchange(update, context, "USDT", generate_response_lkr_usdt, "lkr_to_usdt")
-
-
-
+    processor = LkrUsdtProcessor(update, context, generate_response_lkr_usdt, "lkr_to_usdt")
+    await processor.process()
 
 
 def main() -> None:
