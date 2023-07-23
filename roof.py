@@ -151,92 +151,6 @@ class ExchangeProcessor:
         # Assuming self.update has a method for sending messages
         await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=response)
 
-class RubLkrProcessor(ExchangeProcessor):
-    def __init__(self, update, context, response_generator, conversion, get_rates_func):
-        super().__init__(update, context)
-        self.response_generator = response_generator
-        self.conversion = conversion
-        self.get_rates_func = get_rates_func
-
-    async def process(self):
-        user = self.update.effective_user
-        summa, custom_rate, location = await get_user_arguments(self.context)
-
-        if self.get_rates_func:
-            rate = await self.get_rates_func()
-        else:
-            rate = float(format_price(fetch_price("RUB", "LKR", "Sell", "BANK")))
-
-        response = f"Безубыток: {format_price(rate)}\n"
-        await self.reply(response)
-
-        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
-
-        for response in responses:
-            await self.reply(response)
-
-class LkrRubProcessor(ExchangeProcessor):
-    def __init__(self, update, context, response_generator, conversion, get_rates_func):
-        super().__init__(update, context)
-        self.response_generator = response_generator
-        self.conversion = conversion
-        self.get_rates_func = get_rates_func
-
-    async def process(self):
-        user = self.update.effective_user
-        summa, custom_rate, location = await get_user_arguments(self.context)
-
-        if self.get_rates_func:
-            rate = await self.get_rates_func()
-        else:
-            rate = float(format_price(fetch_price("RUB", "LKR", "Sell", "BANK")))
-
-        response = f"Безубыток: {format_price(rate)}\n"
-        await self.reply(response)
-
-        responses = await self.response_generator(summa, custom_rate, location, rate, self.conversion)
-
-        for response in responses:
-            await self.reply(response)
-
-
-
-class ResponseGenerator:
-    def generate(self, summa, custom_rate, location, rate):
-        raise NotImplementedError()
-
-class RubToLkrResponseGenerator(ResponseGenerator):
-    async def generate(self, summa, custom_rate, location, rate):
-        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO)
-        response2 = await generate_common_response(summa, calculated_rate, 'рублей')
-        response3 = f"{format_profit(summa)} / {format_price(calculated_rate)} / {format_profit(summa * calculated_rate)}"
-        response4 = f"Профит: {format_profit(summa * (rate - calculated_rate))} рупий"
-
-        return response, response2, response3, response4
-
-class LkrToRubResponseGenerator(ResponseGenerator):
-    async def generate(self, summa, custom_rate, location, rate):
-        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO, True)
-        response2 = await generate_common_response(summa / calculated_rate, calculated_rate, 'рублей')
-        response3 = f"{format_profit(summa / calculated_rate)} / {format_price(calculated_rate)} / {format_profit(summa)}"
-        response4 = f"Профит: {format_profit((summa / calculated_rate) * (rate - calculated_rate))} рупий"
-
-        return response, response2, response3, response4
- 
-async def get_exchange(update, context, conversion):
-    if conversion == 'rub_to_lkr':
-        response_generator = RubToLkrResponseGenerator()
-    elif conversion == 'lkr_to_rub':
-        response_generator = LkrToRubResponseGenerator()
-    else:
-        raise ValueError("Invalid conversion type. Choose either 'rub_to_lkr' or 'lkr_to_rub'.")
-
-    processor = ExchangeProcessor(update, context, response_generator, get_rates)
-    await processor.process()
-
-
-
-
 class UsdtLkrProcessor(ExchangeProcessor):
     def __init__(self, update, context, response_generator, conversion):
         # Pass all arguments to the superclass
@@ -276,6 +190,32 @@ class LkrUsdtProcessor(ExchangeProcessor):
 
         for response in responses:
             await self.reply(response)
+
+
+
+class ResponseGenerator:
+    def generate(self, summa, custom_rate, location, rate):
+        raise NotImplementedError()
+
+class RubToLkrResponseGenerator(ResponseGenerator):
+    async def generate(self, summa, custom_rate, location, rate):
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO)
+        response2 = await generate_common_response(summa, calculated_rate, 'рублей')
+        response3 = f"{format_profit(summa)} / {format_price(calculated_rate)} / {format_profit(summa * calculated_rate)}"
+        response4 = f"Профит: {format_profit(summa * (rate - calculated_rate))} рупий"
+
+        return response, response2, response3, response4
+
+class LkrToRubResponseGenerator(ResponseGenerator):
+    async def generate(self, summa, custom_rate, location, rate):
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO, True)
+        response2 = await generate_common_response(summa / calculated_rate, calculated_rate, 'рублей')
+        response3 = f"{format_profit(summa / calculated_rate)} / {format_price(calculated_rate)} / {format_profit(summa)}"
+        response4 = f"Профит: {format_profit((summa / calculated_rate) * (rate - calculated_rate))} рупий"
+
+        return response, response2, response3, response4
+ 
+
 
 
 
@@ -449,21 +389,7 @@ async def generate_common_response(summa, rate, payment_type):
     response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
     return response
 
-async def generate_response(summa, custom_rate, location, RUB_LKR, conversion='rub_to_lkr'):
-    if conversion == 'rub_to_lkr':
-        rate, response = await calculate_rate(summa, custom_rate, location, RUB_LKR, RUB_RANGES_COLOMBO)
-        response2 = await generate_common_response(summa, rate, 'рублей')
-        response3 = f"{format_profit(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
-        response4 = f"Профит: {format_profit(summa * (RUB_LKR - rate))} рупий"
-    elif conversion == 'lkr_to_rub':
-        rate, response = await calculate_rate(summa, custom_rate, location, RUB_LKR, RUB_RANGES_COLOMBO, True)
-        response2 = await generate_common_response(summa / rate, rate, 'рублей')
-        response3 = f"{format_profit(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
-        response4 = f"Профит: {format_profit((summa / rate) * (RUB_LKR - rate))} рупий"
-    else:
-        raise ValueError("Invalid conversion type. Choose either 'rub_to_lkr' or 'lkr_to_rub'.")
 
-    return response, response2, response3, response4
 
 
 
