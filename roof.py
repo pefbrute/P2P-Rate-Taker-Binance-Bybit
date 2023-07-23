@@ -236,10 +236,11 @@ async def get_exchange(update, context, conversion):
 
 
 
+
 class UsdtLkrProcessor(ExchangeProcessor):
     def __init__(self, update, context, response_generator, conversion):
-        super().__init__(update, context)
-        self.response_generator = response_generator
+        # Pass all arguments to the superclass
+        super().__init__(update, context, response_generator, None)  # We pass None as get_rates_func is not used in this class
         self.conversion = conversion
 
     async def process(self):
@@ -258,7 +259,7 @@ class UsdtLkrProcessor(ExchangeProcessor):
 
 class LkrUsdtProcessor(ExchangeProcessor):
     def __init__(self, update, context, response_generator, conversion):
-        super().__init__(update, context)
+        super().__init__(update, context, response_generator, None)
         self.response_generator = response_generator
         self.conversion = conversion
 
