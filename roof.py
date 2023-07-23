@@ -137,7 +137,7 @@ class ExchangeProcessor:
         if self.get_rates_func:
             rate = await self.get_rates_func()
         else:
-            rate = float(format_price(fetch_price("RUB", "LKR", "Sell", "BANK")))
+            rate = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
 
         response = f"Безубыток: {format_price(rate)}\n"
         await self.reply(response)
@@ -215,6 +215,14 @@ class LkrToRubResponseGenerator(ResponseGenerator):
 
         return response, response2, response3, response4
  
+class UsdtToLkrResponseGenerator(ResponseGenerator):
+    async def generate(self, summa, custom_rate, location, rate):
+        return await generate_response_usdt_lkr(summa, custom_rate, location, rate)
+
+
+class LkrToUsdtResponseGenerator(ResponseGenerator):
+    async def generate(self, summa, custom_rate, location, rate):
+        return await generate_response_lkr_usdt(summa, custom_rate, location, rate)
 
 
 
@@ -551,11 +559,13 @@ async def get_lkr_rub(update, context):
     await processor.process()
 
 async def get_usdt_lkr(update, context):
-    processor = UsdtLkrProcessor(update, context, generate_response_usdt_lkr, "usdt_to_lkr")
+    response_generator = UsdtToLkrResponseGenerator()
+    processor = ExchangeProcessor(update, context, response_generator, None)
     await processor.process()
 
 async def get_lkr_usdt(update, context):
-    processor = LkrUsdtProcessor(update, context, generate_response_lkr_usdt, "lkr_to_usdt")
+    response_generator = LkrToUsdtResponseGenerator()
+    processor = ExchangeProcessor(update, context, response_generator, None)
     await processor.process()
 
 
