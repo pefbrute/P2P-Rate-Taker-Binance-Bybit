@@ -266,39 +266,68 @@ async def generate_common_response(summa, rate, payment_type):
     return response
 
 
-class PriceFetcher:
+class PriceProvider:
+    async def fetch_price(self, symbol, currency, action):
+        raise NotImplementedError
+
+class BankPriceProvider(PriceProvider):
+    async def fetch_price(self, symbol, currency, action):
+        return fetch_price(symbol, currency, action, "BANK")
+
+class TinkoffNewPriceProvider(PriceProvider):
+    async def fetch_price(self, symbol, currency, action):
+        return fetch_price(symbol, currency, action, "TinkoffNew")
+
+
+class PriceFormatter:
     @staticmethod
-    async def get_price(symbol, currency, action, provider):
+    def format_price(price):
+        return float(format_price(price))
+
+
+class PriceFetcher:
+    def __init__(self, price_provider, price_formatter):
+        self.price_provider = price_provider
+        self.price_formatter = price_formatter
+
+    async def get_price(self, symbol, currency, action):
         try:
-            return float(format_price(fetch_price(symbol, currency, action, provider)))
+            price = await self.price_provider.fetch_price(symbol, currency, action)
+            return self.price_formatter.format_price(price)
         except Exception as e:
             print(f"Error fetching price: {e}")
             return None
 
+
 class PostGenerator:
-    @staticmethod
-    async def generate_responses(arg, symbol, price, ranges, ranges_colombo, location, location_colombo):
+    def __init__(self, currency, price, ranges, ranges_colombo, location, location_colombo):
+        self.currency = currency
+        self.price = price
+        self.ranges = ranges
+        self.ranges_colombo = ranges_colombo
+        self.location = location
+        self.location_colombo = location_colombo
+
+    async def generate_responses(self, arg):
         responses = [
-            f"Безубыток {symbol}: {format_price(price)}\n",
-            PostGenerator.generate_price_response(symbol, ranges.items(), price, location),
-            PostGenerator.generate_price_response(symbol, ranges_colombo.items(), price, location_colombo),
+            f"Безубыток {self.currency}: {format_price(self.price)}\n",
+            self.generate_price_response(self.ranges.items(), self.location),
+            self.generate_price_response(self.ranges_colombo.items(), self.location_colombo),
             "\n"
         ]
-        return responses if arg in [symbol.lower(), None] else []
-        
-    @staticmethod
-    def generate_price_response(currency, ranges, base_price, location):
-        response = f"{location}:\n"    
-        response += f"{currency}:\n"
+        return responses if arg in [self.currency.lower(), None] else []
+
+    def generate_price_response(self, ranges, location):
+        response = f"{location}:\n"
+        response += f"{self.currency}:\n"
         for limit, value in ranges:
-            if limit == float('inf') and currency == "RUB":
+            if limit == float('inf') and self.currency == "RUB":
                 limit = 139999
-            elif limit == float('inf') and currency == "USDT":
+            elif limit == float('inf') and self.currency == "USDT":
                 limit = 2000
-            response += f"До {format_profit(limit)} - {format_price(base_price - value)}\n"
+            response += f"До {format_profit(limit)} - {format_price(self.price - value)}\n"
         response += f"Выше в лс\n"
         return response
-
 
 
 
@@ -484,16 +513,24 @@ async def print_prices(update, context):
 
     arg = context.args[0].lower() if context.args else None
 
-    USDT_SELL = await PriceFetcher.get_price("USDT", "LKR", "Sell", "BANK")
-    RUB_LKR = await PriceFetcher.get_price("USDT", "RUB", "BUY", "TinkoffNew")
+    bank_price_fetcher = PriceFetcher(BankPriceProvider(), PriceFormatter())
+    tinkoff_new_price_fetcher = PriceFetcher(TinkoffNewPriceProvider(), PriceFormatter())
+
+    USDT_SELL = await bank_price_fetcher.get_price("USDT", "LKR", "Sell")
+    RUB_LKR = await tinkoff_new_price_fetcher.get_price("USDT", "RUB", "BUY")
 
     if USDT_SELL is None or RUB_LKR is None:
         await update.message.reply_text("Error fetching prices, please try again later.")
         return
 
+    post_generator_rub = PostGenerator('RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара',
+                                       'Коломбо, Бентота')
+    post_generator_usdt = PostGenerator('USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара',
+                                        'Коломбо, Бентота')
+
     responses = await asyncio.gather(
-        PostGenerator.generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
-        PostGenerator.generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
+        post_generator_rub.generate_responses(arg),
+        post_generator_usdt.generate_responses(arg)
     )
 
     full_response = "\n".join(sum(responses, []))
