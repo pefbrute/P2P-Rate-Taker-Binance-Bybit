@@ -199,7 +199,7 @@ class ResponseGenerator:
 
 class RubToLkrResponseGenerator(ResponseGenerator):
     async def generate(self, summa, custom_rate, location, rate):
-        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO)
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO, RUB_RANGES)
         response2 = await generate_common_response(summa, calculated_rate, 'рублей')
         response3 = f"{format_profit(summa)} / {format_price(calculated_rate)} / {format_profit(summa * calculated_rate)}"
         response4 = f"Профит: {format_profit(summa * (rate - calculated_rate))} рупий"
@@ -208,7 +208,7 @@ class RubToLkrResponseGenerator(ResponseGenerator):
 
 class LkrToRubResponseGenerator(ResponseGenerator):
     async def generate(self, summa, custom_rate, location, rate):
-        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO, True)
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, RUB_RANGES_COLOMBO, RUB_RANGES, True)
         response2 = await generate_common_response(summa / calculated_rate, calculated_rate, 'рублей')
         response3 = f"{format_profit(summa / calculated_rate)} / {format_price(calculated_rate)} / {format_profit(summa)}"
         response4 = f"Профит: {format_profit((summa / calculated_rate) * (rate - calculated_rate))} рупий"
@@ -217,15 +217,54 @@ class LkrToRubResponseGenerator(ResponseGenerator):
  
 class UsdtToLkrResponseGenerator(ResponseGenerator):
     async def generate(self, summa, custom_rate, location, rate):
-        return await generate_response_usdt_lkr(summa, custom_rate, location, rate)
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, USDT_RANGES_COLOMBO, USDT_RANGES)
+        response2 = await generate_common_response(summa, calculated_rate, 'USDT')
+        response3 = f"{format_price(summa)} / {format_price(calculated_rate)} / {format_profit(summa * calculated_rate)}"
+        response4 = f"Профит: {format_profit(summa * (rate - calculated_rate))} рупий"
 
+        return response, response2, response3, response4
 
 class LkrToUsdtResponseGenerator(ResponseGenerator):
     async def generate(self, summa, custom_rate, location, rate):
-        return await generate_response_lkr_usdt(summa, custom_rate, location, rate)
+        calculated_rate, response = await calculate_rate(summa, custom_rate, location, rate, USDT_RANGES_COLOMBO, USDT_RANGES, True)
+        response2 = await generate_common_response(summa / calculated_rate, calculated_rate, 'USDT')
+        response3 = f"{format_price(summa / calculated_rate)} / {format_price(calculated_rate)} / {format_profit(summa)}"
+        response4 = f"Профит: {format_profit((summa / calculated_rate) * (rate - calculated_rate))} рупий"
+
+        return response, response2, response3, response4
 
 
+async def calculate_rate(summa, custom_rate, location, currency_value, ranges, default_ranges, is_reverse=False):
+    if custom_rate is None:        
+        ranges = ranges if location == "bn" else default_ranges            
+            
+        last_value = next(reversed(ranges.values()))
+        response = f"Максимальная граница для торговли: {format_price(currency_value - last_value)}\n"  
 
+        if (is_reverse):
+            for upper_limit, value in ranges.items():
+                if summa < upper_limit * (currency_value - value):
+                    rate = currency_value - value
+                    break
+        else:
+             for upper_limit, value in ranges.items():
+                print(upper_limit, value, summa)                
+                if summa < upper_limit:
+                    rate = currency_value - value
+                    break           
+    else:
+        rate = custom_rate
+
+    return rate, response
+
+async def generate_common_response(summa, rate, payment_type):
+    response = f"Стоимость: {format_profit(summa)} {payment_type}\n"
+    response += f"Курс обмена: 1 {payment_type} = {format_price(rate)} рупий\n"
+    response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
+    response += f"🏦 Мы принимаем оплату через {payment_type}\n\n"
+    response += f"- - - -\n"
+    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    return response
 
 
 class PriceFetcher:
@@ -368,40 +407,13 @@ def format_info_percentage(prefix, price, percentages, multiplier=None):
 
 
 
-async def calculate_rate(summa, custom_rate, location, currency_value, ranges, is_reverse=False):
-    if custom_rate is None:        
-        ranges = ranges if location == "bn" else RUB_RANGES
-        last_value = next(reversed(ranges.values()))
-        response = f"Максимальная граница для торговли: {format_price(currency_value - last_value)}\n"  
-
-        if (is_reverse):
-            for upper_limit, value in ranges.items():
-                if summa < upper_limit * (currency_value - value):
-                    rate = currency_value - value
-                    break
-        else:
-             for upper_limit, value in ranges.items():
-                if summa < upper_limit:
-                    rate = currency_value - value
-                    break           
-    else:
-        rate = custom_rate
-    return rate, response
-
-async def generate_common_response(summa, rate, payment_type):
-    response = f"Стоимость: {format_profit(summa)} {payment_type}\n"
-    response += f"Курс обмена: 1 {payment_type} = {format_price(rate)} рупий\n"
-    response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
-    response += f"🏦 Мы принимаем оплату через {payment_type}\n\n"
-    response += f"- - - -\n"
-    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
-    return response
 
 
 
 
 
-async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL, conversion='usdt_to_lkr'):
+
+async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL):
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
@@ -426,7 +438,7 @@ async def generate_response_usdt_lkr(summa, custom_rate, location, USDT_SELL, co
 
     return response, response2, response3, response4
 
-async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL, conversion='lkr_to_usdt'):
+async def generate_response_lkr_usdt(summa, custom_rate, location, USDT_SELL):
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
