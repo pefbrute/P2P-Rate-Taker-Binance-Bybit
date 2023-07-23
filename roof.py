@@ -228,6 +228,42 @@ class LkrUsdtProcessor(ExchangeProcessor):
 
 
 
+class PriceFetcher:
+    @staticmethod
+    async def get_price(symbol, currency, action, provider):
+        try:
+            return float(format_price(fetch_price(symbol, currency, action, provider)))
+        except Exception as e:
+            print(f"Error fetching price: {e}")
+            return None
+
+class ResponseGenerator:
+    @staticmethod
+    async def generate_responses(arg, symbol, price, ranges, ranges_colombo, location, location_colombo):
+        responses = [
+            f"Безубыток {symbol}: {format_price(price)}\n",
+            ResponseGenerator.generate_price_response(symbol, ranges.items(), price, location),
+            ResponseGenerator.generate_price_response(symbol, ranges_colombo.items(), price, location_colombo),
+            "\n"
+        ]
+        return responses if arg in [symbol.lower(), None] else []
+        
+    @staticmethod
+    def generate_price_response(currency, ranges, base_price, location):
+        response = f"{location}:\n"    
+        response += f"{currency}:\n"
+        for limit, value in ranges:
+            if limit == float('inf') and currency == "RUB":
+                limit = 139999
+            elif limit == float('inf') and currency == "USDT":
+                limit = 2000
+            response += f"До {format_profit(limit)} - {format_price(base_price - value)}\n"
+        response += f"Выше в лс\n"
+        return response
+
+
+
+
 def calculate_new_price(price, percentage):
     return format_price(float(price) * (1 + percentage / 100.0))
 
@@ -252,14 +288,6 @@ def format_info_add_percentage(prefix, price, percentages, multiplier=None):
     info.append("\n")
     return "".join(info)
 
-
-
-async def get_price(symbol, currency, action, provider):
-    try:
-        return float(format_price(fetch_price(symbol, currency, action, provider)))
-    except Exception as e:
-        print(f"Error fetching price: {e}")
-        return None
 
 
 
@@ -551,16 +579,16 @@ async def print_prices(update, context):
 
     arg = context.args[0].lower() if context.args else None
 
-    USDT_SELL = await get_price("USDT", "LKR", "Sell", "BANK")
-    RUB_LKR = await get_price("USDT", "RUB", "BUY", "TinkoffNew")
+    USDT_SELL = await PriceFetcher.get_price("USDT", "LKR", "Sell", "BANK")
+    RUB_LKR = await PriceFetcher.get_price("USDT", "RUB", "BUY", "TinkoffNew")
 
     if USDT_SELL is None or RUB_LKR is None:
         await update.message.reply_text("Error fetching prices, please try again later.")
         return
 
     responses = await asyncio.gather(
-        generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
-        generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
+        ResponseGenerator.generate_responses(arg, 'RUB', USDT_SELL / RUB_LKR, RUB_RANGES, RUB_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота'),
+        ResponseGenerator.generate_responses(arg, 'USDT', USDT_SELL, USDT_RANGES, USDT_RANGES_COLOMBO, 'Хиккадува - Матара', 'Коломбо, Бентота')
     )
 
     full_response = "\n".join(sum(responses, []))
