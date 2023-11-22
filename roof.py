@@ -85,16 +85,16 @@ async def get_rub(update, context):
         try:
             arg = float(context.args[0])
         except ValueError:
-            await update.message.reply_text("Некорректное значение. Введите число после команды.")
+            await update.message.reply_text("Not correct value. Enter a number after the command.")
             return
 
     USDT_SELL = format_price(fetch_price("USDT", "LKR", "Sell", "BANK"))
     #RUB_BUY = format_price(fetch_price("USDT", "RUB", "BUY", "RaiffeisenBank"))
     RUB_LKR = float( format_price( float(USDT_SELL) / float(RUB_BYBIT) ) )
     
-    response = f"Купить USDT/RUB: {RUB_BYBIT}\n"
-    response += f"Продать USDT/LKR: {USDT_SELL}\n\n"
-    response += format_info("Безубыток RUB", RUB_LKR, [0.40, 0.35, 0.30, 0.25, 0.20, 0.15], arg)
+    response = f"Buy USDT/RUB: {RUB_BYBIT}\n"
+    response += f"Sell USDT/LKR: {USDT_SELL}\n\n"
+    response += format_info("Original Rate for RUB", RUB_LKR, [0.40, 0.35, 0.30, 0.25, 0.20, 0.15], arg)
     await update.message.reply_text(response)
 
 async def get_usdt(update, context):
@@ -106,11 +106,11 @@ async def get_usdt(update, context):
         try:
             arg = float(context.args[0])
         except ValueError:
-            await update.message.reply_text("Некорректное значение. Введите число после команды.")
+            await update.message.reply_text("Not correct value. Enter a number after the command.")
             return
 
     USDT_SELL = format_price(fetch_price("USDT", "LKR", "Sell", "BANK"))
-    response = format_info("Безубыток USDT", USDT_SELL, [19, 17, 15, 13, 12.5, 11, 10], arg)
+    response = format_info("Original Rate for USDT", USDT_SELL, [19, 17, 15, 13, 12.5, 11, 10], arg)
     response += "\n"
     await update.message.reply_text(response)
 
@@ -125,11 +125,11 @@ async def get_usdt_percentages(update, context):
         try:
             arg = float(context.args[0])
         except ValueError:
-            await update.message.reply_text("Некорректное значение. Введите число после команды.")
+            await update.message.reply_text("Not correct value. Enter a number after the command.")
             return
 
     USDT_SELL = format_price(fetch_price("USDT", "LKR", "Sell", "BANK"))
-    response = format_info_percentage("Безубыток USDT", USDT_SELL, [3, 2.5, 2, 1.5, 1], arg)
+    response = format_info_percentage("Original Rate for USDT", USDT_SELL, [3, 2.5, 2, 1.5, 1], arg)
     response += "\n\n"
     await update.message.reply_text(response)
 
@@ -142,7 +142,7 @@ def format_info_add_percentage(prefix, price, percentages, multiplier=None):
             USDT = multiplier / float(new_price)
             USDT_difference = float(new_price) - float(price)
             profit = format_profit(float(USDT_difference) * float(USDT))
-            info += f"+{percentage}%: {new_price} \n - отдадим: {format_profit(USDT)} USDT \n - профит: {profit} LKR\n\n"
+            info += f"+{percentage}%: {new_price} \n - We Give: {format_profit(USDT)} USDT \n - Profit: {profit} LKR\n\n"
         else:
             info += f"+{percentage}%: {new_price}\n"
     info += "\n"
@@ -158,18 +158,18 @@ async def get_usdt_add_percentages(update, context):
         try:
             arg = float(context.args[0])
         except ValueError:
-            await update.message.reply_text("Некорректное значение. Введите число после команды.")
+            await update.message.reply_text("Not correct value. Enter a number after the command.")
             return
 
     USDT_SELL = format_price(fetch_price("USDT", "LKR", "Sell", "BANK"))
-    response = format_info_add_percentage("Безубыток USDT", USDT_SELL, [1, 1.5, 2, 2.5, 3], arg)
+    response = format_info_add_percentage("Original Rate for USDT", USDT_SELL, [1, 1.5, 2, 2.5, 3], arg)
     response += "\n"
     await update.message.reply_text(response)
 
 async def print_prices(update, context):
     user = update.effective_user
 
-    # Получаем аргумент после команды
+    # Get Argument After the Command
     arg = context.args[0].lower() if context.args else None
 
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
@@ -179,15 +179,15 @@ async def print_prices(update, context):
     responses = []
 
     if arg in ['rub', None]:
-        responses.append(f"Безубыток RUB: {format_price(RUB_LKR)}\n")
-        responses.append(generate_price_response('RUB', RUB_RANGES.items(), RUB_LKR, 'Хиккадува - Матара'))
-        responses.append(generate_price_response('RUB', RUB_RANGES_COLOMBO.items(), RUB_LKR, 'Коломбо, Бентота'))
+        responses.append(f"Original Rate for RUB: {format_price(RUB_LKR)}\n")
+        responses.append(generate_price_response('RUB', RUB_RANGES.items(), RUB_LKR, 'Hikkaduwa - Matara'))
+        responses.append(generate_price_response('RUB', RUB_RANGES_COLOMBO.items(), RUB_LKR, 'Colombo, Bentota'))
         responses.append(f"\n")
 
     if arg in ['usdt', None]:
-        responses.append(f"Безубыток USDT: {format_price(USDT_SELL)}\n")
-        responses.append(generate_price_response('USDT', USDT_RANGES.items(), USDT_SELL, 'Хиккадува - Матара'))
-        responses.append(generate_price_response('USDT', USDT_RANGES_COLOMBO.items(), USDT_SELL, 'Коломбо, Бентота'))
+        responses.append(f"Original Rate for USDT: {format_price(USDT_SELL)}\n")
+        responses.append(generate_price_response('USDT', USDT_RANGES.items(), USDT_SELL, 'Hikkaduwa - Matara'))
+        responses.append(generate_price_response('USDT', USDT_RANGES_COLOMBO.items(), USDT_SELL, 'Colombo, Bentota'))
 
     full_response = "\n".join(responses)
     await update.message.reply_text(full_response)
@@ -200,8 +200,8 @@ def generate_price_response(currency, ranges, base_price, location):
             limit = 139999
         elif limit == float('inf') and currency == "USDT":
             limit = 2000
-        response += f"До {format_profit(limit)} - {format_price(base_price - value)}\n"
-    response += f"Выше в лс\n"
+        response += f"Under {format_profit(limit)} - {format_price(base_price - value)}\n"
+    response += f"For Higher Amounts - Text in Direct\n"
     return response
 
 
@@ -211,12 +211,12 @@ async def get_rub_lkr(update, context):
     # Получаем аргументы после команды
     summa = int(context.args[0]) if context.args else None
 
-    # Запрашиваем курсы валют
+    # Запрашиваем Rateы валют
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
     #RUB_BUY = format_price(fetch_price("USDT", "RUB", "BUY", "RaiffeisenBank"))
     RUB_LKR = float( format_price( float(USDT_SELL) / float(RUB_BYBIT) ) )
 
-    response = f"Безубыток: {format_price(RUB_LKR)}\n"
+    response = f"Original Rate for: {format_price(RUB_LKR)}\n"
     await update.message.reply_text(response)
 
 
@@ -224,7 +224,7 @@ async def get_rub_lkr(update, context):
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (курсом)
+            # Проверяем, является ли второй аргумент числом (Rateом)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
@@ -233,18 +233,18 @@ async def get_rub_lkr(update, context):
                 location = 'bn'
                 custom_rate = None
             else:
-                raise ValueError("Неверный второй аргумент. Ожидалось число (курс) или 'bn' (Бентота).")
+                raise ValueError("Not Correct Second Argument. Awaiting for Number (Rate) or 'bn' (Bentota).")
     except IndexError:
         # Если второй аргумент не задан
         custom_rate = None
         location = None
 
-    # Если пользовательский курс не задан
+    # Если пользовательский Rate не задан
     if custom_rate is None:
         ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
         last_value = next(reversed(ranges.values()))
 
-        response = f"Максимальная граница для торговли: {format_price(RUB_LKR - last_value)}\n"  
+        response = f"Max Limit for Trading: {format_price(RUB_LKR - last_value)}\n"  
         await update.message.reply_text(response)
 
         for upper_limit, value in ranges.items():
@@ -254,18 +254,18 @@ async def get_rub_lkr(update, context):
     else:
         rate = custom_rate
 
-    response = f"Стоимость: {format_profit(summa)} рублей\n"
-    response += f"Курс обмена: 1 рубль = {format_price(rate)} рупий\n"
-    response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
-    response += f"🏦 Мы принимаем оплату через банковский перевод на Тинькофф\n\n"
+    response = f"Cost: {format_profit(summa)} RUB\n"
+    response += f"Rate: 1 RUB = {format_price(rate)} LKR\n"
+    response += f"You Get: {format_profit(summa * rate)} Rupees\n\n"
+    response += f"🏦 We take payment using Tinkoff\n\n"
     response += f"- - - -\n"
-    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    response += f"🚨 Please note that the exchange rate may change at any time due to economic and financial factors."
     await update.message.reply_text(response)
    
     response = f"{format_profit(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
     await update.message.reply_text(response)
 
-    response = f"Профит: {format_profit(summa * (RUB_LKR - rate))} рупий"
+    response = f"Profit: {format_profit(summa * (RUB_LKR - rate))} Rupees"
     await update.message.reply_text(response)
 
 async def get_lkr_rub(update, context):
@@ -274,19 +274,19 @@ async def get_lkr_rub(update, context):
     # Получаем аргумент после команды
     summa = int(context.args[0]) if context.args else None
 
-    # Запрашиваем курсы валют
+    # Запрашиваем Rateы валют
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
     #RUB_BUY = format_price(fetch_price("USDT", "RUB", "BUY", "RaiffeisenBank"))
     RUB_LKR = float( format_price( float(USDT_SELL) / float(RUB_BYBIT) ) )
 
-    response = f"Безубыток: {format_price(RUB_LKR)}\n"
+    response = f"Original Rate for: {format_price(RUB_LKR)}\n"
     await update.message.reply_text(response)
 
     # Если задан второй аргумент
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (курсом)
+            # Проверяем, является ли второй аргумент числом (Rateом)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
@@ -295,18 +295,18 @@ async def get_lkr_rub(update, context):
                 location = 'bn'
                 custom_rate = None
             else:
-                raise ValueError("Неверный второй аргумент. Ожидалось число (курс) или 'bn' (Бентота).")
+                raise ValueError("Not Correct Second Argument. Awaiting for Number (Rate) or 'bn' (Bentota).")
     except IndexError:
         # Если второй аргумент не задан
         custom_rate = None
         location = None
 
-    # Если пользовательский курс не задан
+    # Если пользовательский Rate не задан
     if custom_rate is None:
         ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
         last_value = next(reversed(ranges.values()))
 
-        response = f"Максимальная граница для торговли: {format_price(RUB_LKR - last_value)}\n"  
+        response = f"Maximal Limit for Trading: {format_price(RUB_LKR - last_value)}\n"  
         await update.message.reply_text(response)
 
         for upper_limit, value in ranges.items():
@@ -316,18 +316,18 @@ async def get_lkr_rub(update, context):
     else:
         rate = custom_rate
 
-    response = f"Стоимость: {format_price(summa / rate)} рублей\n"
-    response += f"Курс обмена: 1 рубль = {format_price(rate)} рупий\n"
-    response += f"Получите: {format_profit(summa)} рупий\n\n"
+    response = f"Cost: {format_price(summa / rate)} RUB\n"
+    response += f"Exchange Rate: 1 RUB = {format_price(rate)} LKR\n"
+    response += f"You Get: {format_profit(summa)} LKR\n\n"
     response += f"🏦 Мы принимаем оплату через банковский перевод на Тинькофф\n\n"
     response += f"- - - -\n"
-    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    response += f"🚨 Please note that the exchange rate may change at any time due to economic and financial factors."
     await update.message.reply_text(response)
 
     response = f"{format_profit(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
     await update.message.reply_text(response)
     
-    response = f"Профит: {format_profit((summa / rate) * (RUB_LKR - rate))} рупий"
+    response = f"Profit: {format_profit((summa / rate) * (RUB_LKR - rate))} LKR"
     await update.message.reply_text(response)
 
 async def get_usdt_lkr(update, context):
@@ -336,17 +336,17 @@ async def get_usdt_lkr(update, context):
     # Получаем аргументы после команды
     summa = int(context.args[0]) if context.args else None
 
-    # Получаем курс валюты
+    # Получаем Rate валюты
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
 
-    response = f"Безубыток: {format_price(USDT_SELL)}\n"
+    response = f"Original Rate for: {format_price(USDT_SELL)}\n"
     await update.message.reply_text(response)
 
     # Если задан второй аргумент
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (курсом)
+            # Проверяем, является ли второй аргумент числом (Rateом)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
@@ -355,18 +355,18 @@ async def get_usdt_lkr(update, context):
                 location = 'bn'
                 custom_rate = None
             else:
-                raise ValueError("Неверный второй аргумент. Ожидалось число (курс) или 'bn' (Бентота).")
+                raise ValueError("Not correct second argument. Awaiting for Number (Rate) or 'bn' (Bentota)")
     except IndexError:
         # Если второй аргумент не задан
         custom_rate = None
         location = None
 
-    # Если пользовательский курс не задан
+    # Если пользовательский Rate не задан
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
 
-        response = f"Максимальная граница для торговли: {format_price(USDT_SELL - last_value)}\n"  
+        response = f"Maximal Limit for Trading: {format_price(USDT_SELL - last_value)}\n"  
         await update.message.reply_text(response)
 
         for upper_limit, value in ranges.items():
@@ -376,18 +376,18 @@ async def get_usdt_lkr(update, context):
     else:
         rate = custom_rate
 
-    response = f"Стоимость: {format_price(summa)} USDT\n"
-    response += f"Курс обмена: 1 USDT = {format_price(rate)} рупий\n"
-    response += f"Получите: {format_profit(summa * rate)} рупий\n\n"
-    response += f"🏦 Мы принимаем оплату через TRC-20\n\n"
+    response = f"Cost: {format_price(summa)} USDT\n"
+    response += f"Exchange Rate: 1 USDT = {format_price(rate)} LKR\n"
+    response += f"You Get: {format_profit(summa * rate)} LKR\n\n"
+    response += f"🏦 We take payment through TRC-20\n\n"
     response += f"- - - -\n"
-    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    response += f"🚨 Please note that the exchange rate may change at any time due to economic and financial factors."
     await update.message.reply_text(response)
 
     response = f"{format_price(summa)} / {format_price(rate)} / {format_profit(summa * rate)}"
     await update.message.reply_text(response)
 
-    response = f"Профит: {format_profit(summa * (USDT_SELL - rate))} рупий"
+    response = f"Profit: {format_profit(summa * (USDT_SELL - rate))} LKR"
     await update.message.reply_text(response)
 
 async def get_lkr_usdt(update, context):
@@ -396,17 +396,17 @@ async def get_lkr_usdt(update, context):
     # Получаем аргументы после команды
     summa = int(context.args[0]) if context.args else None
 
-    # Получаем курс валюты
+    # Получаем Rate валюты
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
 
-    response = f"Безубыток: {format_price(USDT_SELL)}\n"
+    response = f"Original Rate for: {format_price(USDT_SELL)}\n"
     await update.message.reply_text(response)
 
     # Если задан второй аргумент
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (курсом)
+            # Проверяем, является ли второй аргумент числом (Rateом)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
@@ -415,18 +415,18 @@ async def get_lkr_usdt(update, context):
                 location = 'bn'
                 custom_rate = None
             else:
-                raise ValueError("Неверный второй аргумент. Ожидалось число (курс) или 'bn' (Бентота).")
+                raise ValueError("Not correct second argument. Awaiting for Number (Rate) or 'bn' (Bentota)")
     except IndexError:
         # Если второй аргумент не задан
         custom_rate = None
         location = None
 
-    # Если пользовательский курс не задан
+    # Если пользовательский Rate не задан
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
 
-        response = f"Максимальная граница для торговли: {format_price(USDT_SELL - last_value)}\n"  
+        response = f"Maximal Limit for Trading: {format_price(USDT_SELL - last_value)}\n"  
         await update.message.reply_text(response)
 
         for upper_limit, value in ranges.items():
@@ -436,18 +436,18 @@ async def get_lkr_usdt(update, context):
     else:
         rate = custom_rate
 
-    response = f"Стоимость: {format_price(summa / rate)} USDT\n"
-    response += f"Курс обмена: 1 USDT = {format_price(rate)} рупий\n"
-    response += f"Получите: {format_profit(summa)} рупий\n\n"
-    response += f"🏦 Мы принимаем оплату через TRC-20\n\n"
+    response = f"Cost: {format_price(summa / rate)} USDT\n"
+    response += f"Exchange Rate: 1 USDT = {format_price(rate)} LKR\n"
+    response += f"You Get: {format_profit(summa)} LKR\n\n"
+    response += f"🏦 We take payment through TRC-20\n\n"
     response += f"- - - -\n"
-    response += f"🚨 Обратите внимание, что курс обмена может измениться в любое время из-за экономических и политических факторов."
+    response += f"🚨 Please note that the exchange rate may change at any time due to economic and financial factors."
     await update.message.reply_text(response)
 
     response = f"{format_price(summa / rate)} / {format_price(rate)} / {format_profit(summa)}"
     await update.message.reply_text(response)
 
-    response = f"Профит: {format_profit((summa / rate) * (USDT_SELL - rate))} рупий"
+    response = f"Profit: {format_profit((summa / rate) * (USDT_SELL - rate))} LKR"
     await update.message.reply_text(response)
 
 
@@ -456,7 +456,7 @@ def format_profit(profit):
 
 def fetch_price(asset: str, fiat: str, trade_type: str, pay_type: str):
     """
-    Функция для получения цены криптовалюты от Binance P2P.
+    Function for Getting Rates from P2P Binance
     """
     headers = {
         "Accept": "*/*",
@@ -504,9 +504,9 @@ def format_info(prefix, price, deductions, multiplier=None):
         new_price = format_price((float(price) - deduction))
         if multiplier:
             profit = format_profit(deduction * multiplier)
-            info += f"Курс: {new_price}\n - Разница: {deduction}\n - Профит: {profit} Рупий\n\n"
+            info += f"Rate: {new_price}\n - Difference: {deduction}\n - Profit: {profit} LKR\n\n"
         else:
-            info += f"Курс: {new_price}\n - Разница: {deduction}\n\n"
+            info += f"Rate: {new_price}\n - Difference: {deduction}\n\n"
     info += "\n"
     return info
     
@@ -516,9 +516,9 @@ def format_info_percentage(prefix, price, percentages, multiplier=None):
         new_price = format_price(float(price) * (1 - percentage / 100.0))
         if multiplier:
             profit = format_profit((float(price) - float(new_price)) * multiplier)
-            info += f"Процент: {percentage}%\n- Курс: {new_price}\n- Профит: {profit} Рупий\n\n"
+            info += f"Percentage: {percentage}%\n- Rate: {new_price}\n- Profit: {profit} LKR\n\n"
         else:
-            info += f"Процент: {percentage}%\n- Курс: {new_price}\n"
+            info += f"Percentage: {percentage}%\n- Rate: {new_price}\n"
     info += "\n"
     return info
 
@@ -670,7 +670,7 @@ async def bb(context, update):
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("6220120380:AAFg1NQP68QwSDpfL_6j3pvvac73jg61kfI").build()
+    application = Application.builder().token("INSERT YOUR TOKEN HERE").build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
