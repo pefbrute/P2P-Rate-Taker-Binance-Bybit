@@ -14,5 +14,5 @@ What things you need to install and how to install them.
 pip install -r requirements.txt
 ```
 
-### Functionality
+# Functionality
 ![](https://github.com/binance-p2p-taker/deepin-screen-recorder_Telegram_20231123004538.gif)
