@@ -670,7 +670,7 @@ async def bb(context, update):
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("INSERT YOUR TOKEN HERE").build()
+    application = Application.builder().token("").build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
