@@ -14,4 +14,4 @@ What things you need to install and how to install them.
 pip install -r requirements.txt
 ```
 
-![Functionality](https://github.com/pefbrute/binance-p2p-taker/blob/main/deepin-screen-recorder_Telegram_20231123015931.gif)
+![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/How%20P2P%20Rate%20Taker%20Works.gif)
