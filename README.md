@@ -7,3 +7,5 @@ In order for this to be displayed in the bot, you will need a token, you will ne
 
 ## Presentation of Functionality
 ![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/How%20P2P%20Rate%20Taker%20Works.gif)
+
+### How To Make Telegram Bot Token
