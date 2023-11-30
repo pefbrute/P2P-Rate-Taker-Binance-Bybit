@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# pylint: disable=unused-argument, wrong-import-position
-# This program is dedicated to the public domain under the CC0 license.
-
 import logging, datetime, pytz
 import requests
 from datetime import timedelta
@@ -49,7 +45,7 @@ ALLOWED_USERS = {
     5494039093: "Me",
 }
 
-# Глобальные переменные для диапазонов
+# Global Variables for Ranges
 RUB_RANGES = {9999: 0.25, 39999: 0.22, 69999: 0.20, 99999: 0.17, float('inf'): 0.14}
 RUB_RANGES_COLOMBO = {9999: 0.39, 39999: 0.34, 69999: 0.32, 99999: 0.29, float('inf'): 0.25}
 USDT_RANGES = {500: 16, 1000: 14, float('inf'): 11}
@@ -79,7 +75,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def get_rub(update, context):
     user = update.effective_user
     
-    # Получаем аргумент после команды
+    # We get the argument after the command
     arg = None
     if context.args:
         try:
@@ -100,7 +96,7 @@ async def get_rub(update, context):
 async def get_usdt(update, context):
     user = update.effective_user
         
-    # Получаем аргумент после команды
+    # We get the argument after the command
     arg = None
     if context.args:
         try:
@@ -119,7 +115,7 @@ async def get_usdt_percentages(update, context):
     user = update.effective_user
     
     
-    # Получаем аргумент после команды
+    # We get the argument after the command
     arg = None
     if context.args:
         try:
@@ -152,7 +148,7 @@ async def get_usdt_add_percentages(update, context):
     user = update.effective_user
         
     
-    # Получаем аргумент после команды
+    # We get the argument after the command
     arg = None
     if context.args:
         try:
@@ -208,10 +204,10 @@ def generate_price_response(currency, ranges, base_price, location):
 async def get_rub_lkr(update, context):
     user = update.effective_user
 
-    # Получаем аргументы после команды
+    # Getting arguments after the command
     summa = int(context.args[0]) if context.args else None
 
-    # Запрашиваем Rateы валют
+    # We ask for currency rates
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
     #RUB_BUY = format_price(fetch_price("USDT", "RUB", "BUY", "RaiffeisenBank"))
     RUB_LKR = float( format_price( float(USDT_SELL) / float(RUB_BYBIT) ) )
@@ -220,26 +216,26 @@ async def get_rub_lkr(update, context):
     await update.message.reply_text(response)
 
 
-    # Если задан второй аргумент
+    # If second argument is given
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (Rateом)
+            # Checking if the second argument is a number (Exchange Rate)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
-            # Если второй аргумент - не число, предполагаем, что это локация
+            # If the second argument is not a number, we assume it is a location
             if second_arg.lower() == 'bn':
                 location = 'bn'
                 custom_rate = None
             else:
                 raise ValueError("Not Correct Second Argument. Awaiting for Number (Rate) or 'bn' (Bentota).")
     except IndexError:
-        # Если второй аргумент не задан
+        # If the second argument is not given
         custom_rate = None
         location = None
 
-    # Если пользовательский Rate не задан
+    # If no custom Rate is specified
     if custom_rate is None:
         ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
         last_value = next(reversed(ranges.values()))
@@ -271,10 +267,10 @@ async def get_rub_lkr(update, context):
 async def get_lkr_rub(update, context):
     user = update.effective_user
 
-    # Получаем аргумент после команды
+    # We get the argument after the command
     summa = int(context.args[0]) if context.args else None
 
-    # Запрашиваем Rateы валют
+    # Ask for exchange rates
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
     #RUB_BUY = format_price(fetch_price("USDT", "RUB", "BUY", "RaiffeisenBank"))
     RUB_LKR = float( format_price( float(USDT_SELL) / float(RUB_BYBIT) ) )
@@ -282,26 +278,26 @@ async def get_lkr_rub(update, context):
     response = f"Original Rate for: {format_price(RUB_LKR)}\n"
     await update.message.reply_text(response)
 
-    # Если задан второй аргумент
+    # If second argument is given
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (Rateом)
+            # Checking if the second argument is a number (Exchange Rate)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
-            # Если второй аргумент - не число, предполагаем, что это локация
+            # If the second argument is not a number, we assume it is a location
             if second_arg.lower() == 'bn':
                 location = 'bn'
                 custom_rate = None
             else:
                 raise ValueError("Not Correct Second Argument. Awaiting for Number (Rate) or 'bn' (Bentota).")
     except IndexError:
-        # Если второй аргумент не задан
+        # If the second argument is not given
         custom_rate = None
         location = None
 
-    # Если пользовательский Rate не задан
+    # If no custom Rate is specified
     if custom_rate is None:
         ranges = RUB_RANGES_COLOMBO if location == "bn" else RUB_RANGES
         last_value = next(reversed(ranges.values()))
@@ -319,7 +315,7 @@ async def get_lkr_rub(update, context):
     response = f"Cost: {format_price(summa / rate)} RUB\n"
     response += f"Exchange Rate: 1 RUB = {format_price(rate)} LKR\n"
     response += f"You Get: {format_profit(summa)} LKR\n\n"
-    response += f"🏦 Мы принимаем оплату через банковский перевод на Тинькофф\n\n"
+    response += f"🏦 We take payment using Tinkoff\n\n"
     response += f"- - - -\n"
     response += f"🚨 Please note that the exchange rate may change at any time due to economic and financial factors."
     await update.message.reply_text(response)
@@ -333,35 +329,35 @@ async def get_lkr_rub(update, context):
 async def get_usdt_lkr(update, context):
     user = update.effective_user
 
-    # Получаем аргументы после команды
+    # Getting arguments after the command
     summa = int(context.args[0]) if context.args else None
 
-    # Получаем Rate валюты
+    # Getting the Currency Rate
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
 
     response = f"Original Rate for: {format_price(USDT_SELL)}\n"
     await update.message.reply_text(response)
 
-    # Если задан второй аргумент
+    # If second argument is given
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (Rateом)
+            # Checking if the second argument is a number (Exchange Rate)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
-            # Если второй аргумент - не число, предполагаем, что это локация
+            # If the second argument is not a number, we assume it is a location
             if second_arg.lower() == 'bn':
                 location = 'bn'
                 custom_rate = None
             else:
                 raise ValueError("Not correct second argument. Awaiting for Number (Rate) or 'bn' (Bentota)")
     except IndexError:
-        # Если второй аргумент не задан
+        # If the second argument is not given
         custom_rate = None
         location = None
 
-    # Если пользовательский Rate не задан
+    # If no custom Rate is specified
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
@@ -393,35 +389,35 @@ async def get_usdt_lkr(update, context):
 async def get_lkr_usdt(update, context):
     user = update.effective_user
 
-    # Получаем аргументы после команды
+    # Getting arguments after the command
     summa = int(context.args[0]) if context.args else None
 
-    # Получаем Rate валюты
+    # Getting the Currency Rate
     USDT_SELL = float(format_price(fetch_price("USDT", "LKR", "Sell", "BANK")))
 
     response = f"Original Rate for: {format_price(USDT_SELL)}\n"
     await update.message.reply_text(response)
 
-    # Если задан второй аргумент
+    # If second argument is given
     try:
         second_arg = context.args[1]
         try:
-            # Проверяем, является ли второй аргумент числом (Rateом)
+            # Checking if the second argument is a number (Exchange Rate)
             custom_rate = float(second_arg)
             location = None
         except ValueError:
-            # Если второй аргумент - не число, предполагаем, что это локация
+            # If the second argument is not a number, we assume it is a location
             if second_arg.lower() == 'bn':
                 location = 'bn'
                 custom_rate = None
             else:
                 raise ValueError("Not correct second argument. Awaiting for Number (Rate) or 'bn' (Bentota)")
     except IndexError:
-        # Если второй аргумент не задан
+        # If the second argument is not given
         custom_rate = None
         location = None
 
-    # Если пользовательский Rate не задан
+    # If no custom Rate is specified
     if custom_rate is None:
         ranges = USDT_RANGES_COLOMBO if location == "bn" else USDT_RANGES
         last_value = next(reversed(ranges.values()))
@@ -670,7 +666,7 @@ async def bb(context, update):
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(YOUR-TOKEN-HERE).build()
+    application = Application.builder().token("6764116682:AAEsRFdtEKya4Kre-SMfJTINzzevdoZ7j8Y").build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
