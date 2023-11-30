@@ -56,13 +56,14 @@ USDT_RANGES_COLOMBO = {500: 24, 1000: 21, float('inf'): 19}
 # and context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    user_id = user.id
+    
     await update.message.reply_html(
         f"Hello {user.mention_html()}!",
         reply_markup=ForceReply(selective=True),
     )
-    chat_id = update.effective_chat.id
-    user = update.effective_user
-    user_id = user.id
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
@@ -679,7 +680,7 @@ def main() -> None:
     
     application.add_handler(CommandHandler("bybit", bb))
 
-    application.job_queue.run_repeating(bybit, interval=timedelta(minutes=4))
+    #application.job_queue.run_repeating(bybit, interval=timedelta(minutes=4))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
