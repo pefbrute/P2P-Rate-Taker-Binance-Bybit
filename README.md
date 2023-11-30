@@ -6,7 +6,7 @@ All this is displayed in the telegram bot.
 In order for this to be displayed in the bot, you will need a token, you will need to create a bot via @BotFather, then this same token will be displayed and it will need to be inserted into the file in a certain line (I will add detailed instructions later)
 
 ## Presentation of Functionality
-![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/How%20P2P%20Rate%20Taker%20Works.gif)
+![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/cut_How%20It%20Fetches%20Rates.gif)
 
 ### How To Make Telegram Bot Token
 ![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/cut_How%20To%20Make%20Telegram%20Bot%20Token.gif)
