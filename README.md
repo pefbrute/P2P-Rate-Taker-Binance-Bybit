@@ -9,3 +9,4 @@ In order for this to be displayed in the bot, you will need a token, you will ne
 ![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/How%20P2P%20Rate%20Taker%20Works.gif)
 
 ### How To Make Telegram Bot Token
+![Functionality](https://github.com/pefbrute/p2p-rate-taker-binance-bybit/blob/main/cut_How%20To%20Make%20Telegram%20Bot%20Token.gif)
