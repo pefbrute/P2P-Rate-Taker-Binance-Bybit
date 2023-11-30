@@ -15,4 +15,4 @@ In order for this to be displayed in the bot, you will need a token, you will ne
 2. Click **/start**
 3. Click **/newbot**
 4. Write down its name (in the example, it is "**test_test_test**")
-5. Write down his address/nickname, it should end with “_bot” (in the example, this is "**test_test_test222_bot**")
+5. Write down his address / nickname, it should end with “_bot” (in the example, this is "**test_test_test222_bot**")
