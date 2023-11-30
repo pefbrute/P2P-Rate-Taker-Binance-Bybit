@@ -52,21 +52,17 @@ USDT_RANGES = {500: 16, 1000: 14, float('inf'): 11}
 USDT_RANGES_COLOMBO = {500: 24, 1000: 21, float('inf'): 19}
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
+# Define a few command handlers. These usually take the two arguments update
+# and context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
     await update.message.reply_html(
-        rf"Привет {user.mention_html()}!",
+        f"Hello {user.mention_html()}!",
         reply_markup=ForceReply(selective=True),
     )
     chat_id = update.effective_chat.id
     user = update.effective_user
     user_id = user.id
-    #await update.message.reply_text(f"Your chat ID is {chat_id}")
-    #await context.bot.send_message(5494039093, f"User ID is {user_id}")
-
-
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
@@ -666,7 +662,7 @@ async def bb(context, update):
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("6764116682:AAEsRFdtEKya4Kre-SMfJTINzzevdoZ7j8Y").build()
+    application = Application.builder().token("INSERT-YOUR-TELEGRAM-BOT-TOKEN-HERE").build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
